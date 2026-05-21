@@ -75,18 +75,22 @@ def render_reset_button(key: str) -> None:
     st.sidebar.markdown(
         """
 <style>
-section[data-testid="stSidebar"] div.stButton > button[kind="primary"] {
+section[data-testid="stSidebar"] div.stButton button,
+section[data-testid="stSidebar"] div.stButton > button {
     background-color: #dc2626 !important;
     color: #ffffff !important;
-    border: 1px solid #b91c1c !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 0.5rem 1rem !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    width: 100% !important;
+    cursor: pointer !important;
 }
-section[data-testid="stSidebar"] div.stButton > button[kind="primary"]:hover {
+section[data-testid="stSidebar"] div.stButton button:hover,
+section[data-testid="stSidebar"] div.stButton > button:hover {
     background-color: #b91c1c !important;
     color: #ffffff !important;
-    border: 1px solid #991b1b !important;
-}
-section[data-testid="stSidebar"] div.stButton > button[kind="primary"]:focus {
-    box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.35) !important;
 }
 </style>
         """,
@@ -96,6 +100,7 @@ section[data-testid="stSidebar"] div.stButton > button[kind="primary"]:focus {
     if st.sidebar.button("Reset Database", key=key, type="primary"):
         with engine.begin() as conn:
             conn.execute(text("CALL sp_reset_database();"))
+        st.cache_data.clear()
         sequence = int(st.session_state.get(RESET_DB_SUCCESS_SEQUENCE_KEY, 0)) + 1
         st.session_state[RESET_DB_SUCCESS_SEQUENCE_KEY] = sequence
         st.session_state[RESET_DB_SUCCESS_KEY] = {
