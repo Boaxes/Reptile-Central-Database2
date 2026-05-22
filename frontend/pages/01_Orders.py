@@ -3,14 +3,10 @@ import streamlit as st
 from sqlalchemy import text
 
 from backend.db import get_engine
-from frontend.ui.ui_framework import (
-    page_setup,
-    queue_success_message,
-    read_sql_with_recovery,
-    render_browse_tab,
-    render_delete_tab,
-    render_success_message,
-)
+from frontend.ui.ui_framework.browse import render_browse_tab
+from frontend.ui.ui_framework.common import page_setup, queue_success_message, render_success_message
+from frontend.ui.ui_framework.data_access import fetch_view, read_sql_with_recovery
+from frontend.ui.ui_framework.delete_tab import render_delete_tab
 
 
 ORDER_DETAILS_QUERY = text(
@@ -43,13 +39,17 @@ def id_label_map(df: pd.DataFrame, id_col: str, label_col: str) -> dict[int, str
     return dict(zip(df[id_col].astype(int), df[label_col].astype(str)))
 
 
-def load_page_data(engine):
+@st.cache_data(ttl=300)
+def load_page_data():
     """Load the data used by the Orders page."""
-    orders_df = read_sql_with_recovery(engine, "SELECT * FROM v_browse_orders_page;")
-    customers_df = read_sql_with_recovery(engine, "SELECT * FROM v_browse_customers_page;")
-    employees_df = read_sql_with_recovery(engine, "SELECT * FROM v_browse_employees_page;")
-    products_df = read_sql_with_recovery(engine, "SELECT * FROM v_browse_products_page;")
+    orders_df = fetch_view("v_browse_orders_page")
+    customers_df = fetch_view("v_browse_customers_page")
+    employees_df = fetch_view("v_browse_employees_page")
+    products_df = fetch_view("v_browse_products_page")
 
+    customers_df = customers_df.copy()
+    employees_df = employees_df.copy()
+    orders_df = orders_df.copy()
     customers_df["Customer Name"] = full_name(customers_df, "First Name", "Last Name")
     employees_df["Employee Name"] = full_name(employees_df, "First Name", "Last Name")
     orders_df["Customer Name"] = full_name(orders_df, "First Name", "Last Name")
@@ -139,6 +139,7 @@ def render_create_order_tab(tab, engine, customers_df, employees_df, products_df
                     upsert_order_item(conn, new_order_id, int(product_id), int(qty))
             st.session_state[CREATE_ORDER_PRODUCTS_EDITOR_VERSION_KEY] = editor_version + 1
             queue_success_message(CREATE_ORDER_SUCCESS_KEY, "Order created successfully.")
+            st.cache_data.clear()
             st.rerun()
 
         render_success_message(CREATE_ORDER_SUCCESS_KEY, ORDER_SUCCESS_MESSAGE_DURATION_SECONDS)
@@ -213,6 +214,7 @@ def render_details_tab(tab, engine, orders_df, products_df) -> None:
             with engine.begin() as conn:
                 upsert_order_item(conn, int(order_id), int(product_id), int(qty))
             queue_success_message(UPDATE_ORDER_ITEM_SUCCESS_KEY, "Order updated successfully.")
+            st.cache_data.clear()
             st.rerun()
 
         render_success_message(
@@ -223,7 +225,7 @@ def render_details_tab(tab, engine, orders_df, products_df) -> None:
 
 page_setup(title="Orders", icon="📄", page_heading="Orders")
 engine = get_engine()
-orders_df, customers_df, employees_df, products_df = load_page_data(engine)
+orders_df, customers_df, employees_df, products_df = load_page_data()
 
 tab_browse, tab_create_order, tab_update_details, tab_delete = st.tabs(
     ["Order Overview", "Create Order", "View or Update Order Details", "Delete Order"]

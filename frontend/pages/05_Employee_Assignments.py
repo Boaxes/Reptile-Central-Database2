@@ -2,14 +2,12 @@ import pandas as pd
 import streamlit as st
 
 from backend.db import get_engine
-from frontend.ui.ui_framework import (
-    page_setup,
-    read_sql_with_recovery,
-    render_browse_tab,
-    render_create_tab,
-    render_update_tab,
-    render_delete_tab,
-)
+from frontend.ui.ui_framework.browse import render_browse_tab
+from frontend.ui.ui_framework.common import page_setup
+from frontend.ui.ui_framework.create_tab import render_create_tab
+from frontend.ui.ui_framework.data_access import read_sql_with_recovery
+from frontend.ui.ui_framework.delete_tab import render_delete_tab
+from frontend.ui.ui_framework.update_tab import render_update_tab
 
 
 page_setup(title="Employee Assignments", icon="🔗", page_heading="Employee Assignments")
