@@ -11,7 +11,7 @@ RAG-capable AI chatbot powered by GPT-4o mini and LlamaIndex.
 The app is deployed on Google Cloud Run with a MySQL database hosted on Google Cloud SQL,
 and is open for anyone to explore at:
 
-[reptile-central-database-demo.streamlit.app](https://reptile-central-database-demo.streamlit.app/)
+[reptile-central-database-demo.streamlit.app](https://reptile-central-328698967588.us-central1.run.app/)
 
 *Note that AI chatbot usage is rate-limited to prevent abuse.*
 
